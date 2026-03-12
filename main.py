@@ -186,7 +186,9 @@ async def run() -> None:
         # Health check (no queue group — every instance responds)
         health_sub = await nc.subscribe(config.HEALTH_SUBJECT)
 
-        # Signal handling
+        # Signal handling — drain NATS subscriptions only.
+        # engine.shutdown() is called after the NATS context manager exits
+        # to avoid racing with SGLang's subprocess teardown on Python 3.13.
         loop = asyncio.get_running_loop()
 
         def _handle_shutdown() -> None:
@@ -194,13 +196,13 @@ async def run() -> None:
             for s in infer_subs:
                 asyncio.create_task(s.drain())
             asyncio.create_task(health_sub.drain())
-            engine.shutdown()
 
         for sig in (signal.SIGINT, signal.SIGTERM):
             loop.add_signal_handler(sig, _handle_shutdown)
 
         logger.info("Service ready.")
 
+        failed = False
         try:
             async with asyncio.TaskGroup() as tg:
                 for sub, (subject, system_prompt) in zip(infer_subs, config.SUBJECTS.items()):
@@ -216,10 +218,13 @@ async def run() -> None:
         except* Exception as eg:
             for exc in eg.exceptions:
                 logger.error(f"Task failed: {exc}")
-            engine.shutdown()
-            sys.exit(1)
+            failed = True
 
+    # NATS connection closed — now safe to shut down SGLang subprocesses
+    engine.shutdown()
     logger.info("Service stopped.")
+    if failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
