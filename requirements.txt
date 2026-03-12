@@ -1,0 +1,14 @@
+nats-core
+python-dotenv
+transformers
+
+# sglang is NOT listed here — it must be installed into the venv separately
+# as it has heavy CUDA dependencies that pip cannot resolve automatically
+# from a requirements file without the correct index URLs.
+#
+# Install with:
+#   pip install sglang[all]
+#
+# transformers is listed above and is also a dependency of sglang, but
+# listing it explicitly ensures it is available for AutoTokenizer even
+# if the sglang install changes.
