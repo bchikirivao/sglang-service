@@ -47,6 +47,30 @@ MAX_TOTAL_TOKENS     = int(os.getenv("MAX_TOTAL_TOKENS",   "0"))
 DISABLE_RADIX_CACHE  = os.getenv("DISABLE_RADIX_CACHE", "false").lower() == "true"
 
 # ---------------------------------------------------------------------------
+# Speculative decoding
+#
+# SPECULATIVE_ALGORITHM: "" (disabled) | "NGRAM" | "STANDALONE" | "EAGLE"
+#
+#   NGRAM       — no extra model needed. Uses n-gram pattern matching on the
+#                 prompt/context to predict tokens. Great for repetitive
+#                 structured outputs like JSON. Zero extra VRAM.
+#
+#   STANDALONE  — small draft model generates candidates, target verifies.
+#                 Set SPECULATIVE_DRAFT_MODEL to a smaller model in the same
+#                 family (e.g. Llama-3.2-1B-Instruct for a 3B target).
+#
+#   EAGLE       — lightweight head trained on target hidden states. Highest
+#                 acceptance rate but requires a specific EAGLE-trained draft.
+#
+# SPECULATIVE_NUM_DRAFT_TOKENS: candidate tokens generated per step (default 4).
+# SPECULATIVE_NUM_STEPS: draft steps before verification (default 3).
+# ---------------------------------------------------------------------------
+SPECULATIVE_ALGORITHM        = os.getenv("SPECULATIVE_ALGORITHM",        "")
+SPECULATIVE_DRAFT_MODEL      = os.getenv("SPECULATIVE_DRAFT_MODEL",      "")
+SPECULATIVE_NUM_DRAFT_TOKENS = int(os.getenv("SPECULATIVE_NUM_DRAFT_TOKENS", "4"))
+SPECULATIVE_NUM_STEPS        = int(os.getenv("SPECULATIVE_NUM_STEPS",        "3"))
+
+# ---------------------------------------------------------------------------
 # Inference defaults
 # ---------------------------------------------------------------------------
 DEFAULT_MAX_TOKENS  = int(  os.getenv("DEFAULT_MAX_TOKENS",  "256"))

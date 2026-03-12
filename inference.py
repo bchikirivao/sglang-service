@@ -101,6 +101,25 @@ class InferenceEngine:
             engine_kwargs["disable_radix_cache"] = True
             logger.info("RadixAttention prefix cache disabled")
 
+        if config.SPECULATIVE_ALGORITHM:
+            engine_kwargs["speculative_algorithm"] = config.SPECULATIVE_ALGORITHM
+            engine_kwargs["speculative_num_draft_tokens"] = config.SPECULATIVE_NUM_DRAFT_TOKENS
+            engine_kwargs["speculative_num_steps"] = config.SPECULATIVE_NUM_STEPS
+            if config.SPECULATIVE_DRAFT_MODEL:
+                engine_kwargs["speculative_draft_model_path"] = config.SPECULATIVE_DRAFT_MODEL
+                logger.info(
+                    f"Speculative decoding: {config.SPECULATIVE_ALGORITHM} "
+                    f"draft={config.SPECULATIVE_DRAFT_MODEL} "
+                    f"steps={config.SPECULATIVE_NUM_STEPS} "
+                    f"tokens={config.SPECULATIVE_NUM_DRAFT_TOKENS}"
+                )
+            else:
+                logger.info(
+                    f"Speculative decoding: {config.SPECULATIVE_ALGORITHM} "
+                    f"steps={config.SPECULATIVE_NUM_STEPS} "
+                    f"tokens={config.SPECULATIVE_NUM_DRAFT_TOKENS}"
+                )
+
         self._engine    = sgl.Engine(**engine_kwargs)
         self._tokenizer = AutoTokenizer.from_pretrained(config.MODEL_ID)
         logger.info("Model loaded and ready.")
