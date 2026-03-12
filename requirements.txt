@@ -1,4 +1,5 @@
 nats-core
+nkeys
 python-dotenv
 transformers
 
